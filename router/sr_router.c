@@ -129,7 +129,7 @@ void sr_handlepacket(struct sr_instance* sr,
       ip_addr.s_addr = ip_hdr->ip_dst;
 
       /* find the interface of the destination*/
-      while (rt->next != null){
+      while (rt->next){
         if(inet_ntoa(rt->dest) == inet_ntoa(ip_addr)){
             /* found destination in routing_table*/
             inf_to = (char *)(rt->interface);
@@ -151,13 +151,12 @@ void sr_handlepacket(struct sr_instance* sr,
 
     /* ip frame is for us... check protocol */
     printf("ip frame is for us! lets see what it is\n");
-    uint8_t ip_proto = ip_protocol(buf + sizeof(sr_ethernet_hdr_t));
+    uint8_t ip_proto = ip_protocol(packet + sizeof(sr_ethernet_hdr_t));
 
     /* if its ICMP...*/
     if (ip_proto == ip_protocol_icmp){
       printf("its an ICMP packet!\n");
-      struct sr_icmp_hdr icmp = (struct sr_icmp_hdr *)(packet +  sizeof(struct sr_ethernet_hdr) 
-                                                       + sizeof(struct sr_ip_hdr));
+      struct sr_icmp_hdr* icmp = packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr);
 
       if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) == ip_hdr->ip_sum){
 
