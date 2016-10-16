@@ -140,7 +140,7 @@ void sr_handlepacket(struct sr_instance* sr,
       }
 
       /* destination is in our table...*/
-      if(inf_to != null){
+      if(inf_to){
         printf("found the interface to pass to in our table!\n");
 
       }
@@ -156,7 +156,7 @@ void sr_handlepacket(struct sr_instance* sr,
     /* if its ICMP...*/
     if (ip_proto == ip_protocol_icmp){
       printf("its an ICMP packet!\n");
-      struct sr_icmp_hdr* icmp = packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr);
+      struct sr_icmp_hdr* icmp = (struct sr_icmp_hdr*)(packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
 
       if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) == ip_hdr->ip_sum){
 
