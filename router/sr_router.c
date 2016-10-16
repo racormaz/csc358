@@ -94,19 +94,22 @@ void sr_handlepacket(struct sr_instance* sr,
   uint16_t etype = (uint16_t)(ethertype(packet->buffer));
 
   // arp frame handling
-  if (etype == ethertype_arp){
+/*  if (etype == ethertype_arp){
 
-    struct sr_arp_hdr* arp_packet = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
+    struct sr_arp_hdr* arp_hdr = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
     if (ehder->etehr_dhost == "ff-ff-ff-ff-ff-ff"){
 
 
     }
-  }
+  }*/
 
   // ip frame handling
   if (etype == ethertype_ip){
     // ip packet
+
+    printf("its an IP packet!\n");
+
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
     char* inf_to = null;
 
@@ -116,6 +119,8 @@ void sr_handlepacket(struct sr_instance* sr,
 
       return -1;
     }
+
+    printf("passed sanity check!");
 
     // interface_to not in our if_list
     if(inf_from == 0){
@@ -137,6 +142,8 @@ void sr_handlepacket(struct sr_instance* sr,
 
       // destination is in our table...
       if(inf_to != null){
+        printf("found the interface to pass to
+         in our table!\n");
 
       }
 
@@ -146,12 +153,13 @@ void sr_handlepacket(struct sr_instance* sr,
 
     // ip frame is for us...
     // check protocol
-
+    printf("ip frame is for us! lets see what it is\n");
     uint8_t ip_proto = ip_protocol(buf + sizeof(sr_ethernet_hdr_t));
 
     // if its ICMP...
     if (ip_proto == ip_protocol_icmp){
       // ICMP packet
+      printf("its an ICMP packet!\n");
       sr_icmp_hdr icmp = (struct sr_icmp_hdr *)(packet +  sizeof(struct sr_ethernet_hdr) 
                                                        + sizeof(struct sr_ip_hdr));
       // check sum of ip packet
@@ -159,7 +167,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
         // if its an echo request
         if(icmp->icmp_type == 0){
-          
+          printf("its an echo request!\n");
         }
 
       }
@@ -170,18 +178,11 @@ void sr_handlepacket(struct sr_instance* sr,
 
     // if its a TCP or UDP protocol
     else if(ip_proto == 0x0006 || ip_proto == 0x0011){
+      printf("its TCP or UDP!\n");
       
     }
 
 
-  }
-
-  // if we found the address in the table...
-  if (inf_to !=null){
-    ehdr->ether_shost = (uint8_t)(inf_from->addr);
-    ehdr->ether_dhost = (uint8_t)(inf_to->addr);
-
-    sr_send_packet(sr, packet->buf ,len, inf_to->name);
   }
 
   //else 
