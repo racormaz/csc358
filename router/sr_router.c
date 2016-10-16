@@ -81,11 +81,11 @@ void sr_handlepacket(struct sr_instance* sr,
   /* fill in code here */
   
   /* interface */
-  sr_if inf_from = (struct sr_if*)(sr_get_interface(sr, interface));
+  struct sr_if inf_from = (struct sr_if*)(sr_get_interface(sr, interface));
 
   /* ethernet header */
-  sr_ethernet_hdr *ehdr = (struct sr_ethernet_hdr*)packet;
-  print the destination and source addresses
+  struct sr_ethernet_hdr *ehdr = (struct sr_ethernet_hdr*)packet;
+  /*print the destination and source addresses*/
 
   print_hdr_eth(packet);
 
@@ -123,7 +123,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
     /* interface_to not in our if_list*/
     if(inf_from == 0){
-      sr_rt rt = (struct sr_rt *)(sr->routing_table);
+      struct sr_rt* rt = sr->routing_table;
 
       struct in_addr ip_addr;
       ip_addr.s_addr = iphdr->ip_dst;
@@ -157,7 +157,7 @@ void sr_handlepacket(struct sr_instance* sr,
     /* if its ICMP...*/
     if (ip_proto == ip_protocol_icmp){
       printf("its an ICMP packet!\n");
-      sr_icmp_hdr icmp = (struct sr_icmp_hdr *)(packet +  sizeof(struct sr_ethernet_hdr) 
+      struct sr_icmp_hdr icmp = (struct sr_icmp_hdr *)(packet +  sizeof(struct sr_ethernet_hdr) 
                                                        + sizeof(struct sr_ip_hdr));
 
       if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) == ip_hdr->ip_sum){
