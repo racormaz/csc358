@@ -94,15 +94,13 @@ void sr_handlepacket(struct sr_instance* sr,
   uint16_t etype = (uint16_t)(ethertype(packet));
 
   /* arp frame handling*/
-/*  if (etype == ethertype_arp){
-
+  if (etype == ethertype_arp){
+    printf("arp packet here!/n");
+    print_hdr_arp(packet + sizeof(struct sr_ethernet_hdr));
     struct sr_arp_hdr* arp_hdr = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    if (ehder->etehr_dhost == "ff-ff-ff-ff-ff-ff"){
 
-
-    }
-  }*/
+  }
 
   /* ip frame handling*/
   if (etype == ethertype_ip){
