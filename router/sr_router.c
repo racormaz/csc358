@@ -81,17 +81,17 @@ void sr_handlepacket(struct sr_instance* sr,
   /* fill in code here */
   
   /* interface */
-  struct sr_if inf_from = (struct sr_if*)(sr_get_interface(sr, interface));
+  struct sr_if* inf_from = sr_get_interface(sr, interface);
 
   /* ethernet header */
-  struct sr_ethernet_hdr *ehdr = (struct sr_ethernet_hdr*)packet;
+  struct sr_ethernet_hdr* ehdr = (struct sr_ethernet_hdr*)packet;
   /*print the destination and source addresses*/
 
   print_hdr_eth(packet);
 
   /*get type of packet*/
 
-  uint16_t etype = (uint16_t)(ethertype(packet->buffer));
+  uint16_t etype = (uint16_t)(ethertype(packet));
 
   /* arp frame handling*/
 /*  if (etype == ethertype_arp){
@@ -110,13 +110,13 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("its an IP packet!\n");
 
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
-    char* inf_to = null;
+    char* inf_to;
 
     /*sanity check*/
     if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum &&
       ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
 
-      return -1;
+      printf("checksum didn't work/n");
     }
 
     printf("passed sanity check!");
@@ -126,7 +126,7 @@ void sr_handlepacket(struct sr_instance* sr,
       struct sr_rt* rt = sr->routing_table;
 
       struct in_addr ip_addr;
-      ip_addr.s_addr = iphdr->ip_dst;
+      ip_addr.s_addr = ip_hdr->ip_dst;
 
       /* find the interface of the destination*/
       while (rt->next != null){
@@ -141,8 +141,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
       /* destination is in our table...*/
       if(inf_to != null){
-        printf("found the interface to pass to
-         in our table!\n");
+        printf("found the interface to pass to in our table!\n");
 
       }
 
