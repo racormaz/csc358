@@ -19,7 +19,7 @@
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
     /* Fill this in */
 
-    struct sr_arpcache requests = sr->cache.requests;
+   /* struct sr_arpcache requests = sr->cache.requests;*/
 
 
 }
