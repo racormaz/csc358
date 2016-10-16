@@ -80,20 +80,20 @@ void sr_handlepacket(struct sr_instance* sr,
 
   /* fill in code here */
   
-  // interface
+  /* interface */
   sr_if inf_from = (struct sr_if*)(sr_get_interface(sr, interface));
 
-  // ethernet header
+  /* ethernet header */
   sr_ethernet_hdr *ehdr = (struct sr_ethernet_hdr*)packet;
-  //print the destination and source addresses
+  print the destination and source addresses
 
   print_hdr_eth(packet);
 
-  //get type of packet
+  /*get type of packet*/
 
   uint16_t etype = (uint16_t)(ethertype(packet->buffer));
 
-  // arp frame handling
+  /* arp frame handling*/
 /*  if (etype == ethertype_arp){
 
     struct sr_arp_hdr* arp_hdr = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
@@ -104,16 +104,15 @@ void sr_handlepacket(struct sr_instance* sr,
     }
   }*/
 
-  // ip frame handling
+  /* ip frame handling*/
   if (etype == ethertype_ip){
-    // ip packet
 
     printf("its an IP packet!\n");
 
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
     char* inf_to = null;
 
-    //sanity check
+    /*sanity check*/
     if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum &&
       ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
 
@@ -122,17 +121,17 @@ void sr_handlepacket(struct sr_instance* sr,
 
     printf("passed sanity check!");
 
-    // interface_to not in our if_list
+    /* interface_to not in our if_list*/
     if(inf_from == 0){
       sr_rt rt = (struct sr_rt *)(sr->routing_table);
 
       struct in_addr ip_addr;
       ip_addr.s_addr = iphdr->ip_dst;
 
-      // find the interface of the destination
+      /* find the interface of the destination*/
       while (rt->next != null){
         if(inet_ntoa(rt->dest) == inet_ntoa(ip_addr)){
-            // found destination in routing_table
+            /* found destination in routing_table*/
             inf_to = (char *)(rt->interface);
             break;
         }
@@ -140,43 +139,41 @@ void sr_handlepacket(struct sr_instance* sr,
         rt = rt->next;
       }
 
-      // destination is in our table...
+      /* destination is in our table...*/
       if(inf_to != null){
         printf("found the interface to pass to
          in our table!\n");
 
       }
 
-      //else send ICMP net unreachable
+      /*else send ICMP net unreachable*/
 
     }
 
-    // ip frame is for us...
-    // check protocol
+    /* ip frame is for us... check protocol */
     printf("ip frame is for us! lets see what it is\n");
     uint8_t ip_proto = ip_protocol(buf + sizeof(sr_ethernet_hdr_t));
 
-    // if its ICMP...
+    /* if its ICMP...*/
     if (ip_proto == ip_protocol_icmp){
-      // ICMP packet
       printf("its an ICMP packet!\n");
       sr_icmp_hdr icmp = (struct sr_icmp_hdr *)(packet +  sizeof(struct sr_ethernet_hdr) 
                                                        + sizeof(struct sr_ip_hdr));
-      // check sum of ip packet
+
       if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) == ip_hdr->ip_sum){
 
-        // if its an echo request
+        /* if its an echo request*/
         if(icmp->icmp_type == 0){
           printf("its an echo request!\n");
         }
 
       }
 
-      //check sum didn't pass
+      /*/check sum didn't pass*/
 
     }
 
-    // if its a TCP or UDP protocol
+    /* if its a TCP or UDP protocol*/
     else if(ip_proto == 0x0006 || ip_proto == 0x0011){
       printf("its TCP or UDP!\n");
       
@@ -185,7 +182,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
   }
 
-  //else 
+  /*else */
   
 }/* end sr_ForwardPacket */
 
