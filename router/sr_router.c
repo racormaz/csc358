@@ -119,7 +119,6 @@ void sr_handlepacket(struct sr_instance* sr,
           return -1;
           
         }
-
         sr_arp_hdr_t arp_response = (struct sr_arp_hdr*)(packet_out + sizeof(struct sr_ethernet_hdr));
         
         arp_response->ar_hrd = htons(sr_arp_hrd_fmt);
