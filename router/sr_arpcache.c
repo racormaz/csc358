@@ -16,21 +16,7 @@
   checking whether we should resend an request or destroy the arp request.
   See the comments in the header file for an idea of what it should look like.
 */
-void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
-    /* Fill this in */
 
-    struct sr_arpcache cache = sr->cache;
-
-    struct sr_arpreq* req_walker = (struct sr_arpreq*)(cache.requests);
-
-    while(req_walker->next){
-        handle_arpreq(sr, req_walker);
-
-        req_walker = req_walker->next;
-    }
-
-
-}
 
 void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
     time_t curtime = time(NULL);
@@ -55,6 +41,24 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
         }
     }
 }
+
+
+void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
+    /* Fill this in */
+
+    struct sr_arpcache cache = sr->cache;
+
+    struct sr_arpreq* req_walker = (struct sr_arpreq*)(cache.requests);
+
+    while(req_walker->next){
+        handle_arpreq(sr, req_walker);
+
+        req_walker = req_walker->next;
+    }
+
+
+}
+
 
 /* You should not need to touch the rest of this code. */
 
