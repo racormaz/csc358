@@ -101,13 +101,13 @@ void sr_handlepacket(struct sr_instance* sr,
 
     struct sr_arp_hdr* arp_hdr = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    if (sr_arp_req_not_for_us(sr, packet, len, interface)){
+    if (sr_arp_req_not_for_us(sr, packet, len, interface) == 1){
       printf("the arp is not for us\n");
       /*its not for us*/
 
     }
 
-    else if(arp_hdr->ar_op == htons(arp_op_request){
+    else if(arp_hdr->ar_op == htons(arp_op_request)){
       printf("its a arp request, need to reply");
       
       if (inf_from){
