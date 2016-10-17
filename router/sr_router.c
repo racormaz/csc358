@@ -112,7 +112,12 @@ void sr_handlepacket(struct sr_instance* sr,
       
       if (inf_from){
 
-        uint8_t * packet_out = (uint8_t *)malloc(len);
+        unsigned char *packet_out = 0;
+
+        if((packet_out = malloc(len)) == 0){
+          fprintf(stderr,"Error: out of memory (sr_read_from_server)\n");
+          return -1;
+        }
 
         sr_arp_hdr_t arp_response = (struct sr_arp_hdr*)(packet_out + sizeof(struct sr_ethernet_hdr));
         
