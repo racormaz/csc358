@@ -168,7 +168,8 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
     if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum){
-      break;
+      fprintf(stderr,"erro with checksum/n");
+      continue;
     }
 
     struct sr_if* if_walker = sr->if_list;
@@ -176,7 +177,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
     while(if_walker)
     {
-       if(if_walker->ip == ip_hdr->ip_dest)
+       if(if_walker->ip == ip_hdr->ip_dst)
         { 
           flag = 1;
           break; }
@@ -196,16 +197,16 @@ void sr_handlepacket(struct sr_instance* sr,
         printf("its an ICMP packet!\n");
         struct sr_icmp_hdr* icmp_hdr = (struct sr_icmp_hdr*)(packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
 
-        if(cksum((packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), len - sizeof(struct sr_ethernet_hdr) - sizeof(sr_ip_hdr)) == icmp_hdr->icmp_sum){
+        if(cksum((packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), len - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr)) == icmp_hdr->icmp_sum){
 
           /* if its an echo request*/
-          if(icmp->icmp_type == 0){
+          if(icmp_hdr->icmp_type == 0){
             printf("its an echo request!\n");
 
             
             uint8_t *buf = malloc(len);
 
-            struct sr_icmp_hdr* icmp_res = (struct sr_arp_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
+            struct sr_icmp_hdr* icmp_res = (struct sr_icmp_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
             struct sr_ip_hdr* ip_res = (struct sr_ip_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
             struct sr_ethernet_hdr* ehdr_res = (struct sr_ethernet_hdr*)buf;
 
@@ -216,7 +217,7 @@ void sr_handlepacket(struct sr_instance* sr,
         }
 
         /*/check sum didn't pass*/
-        break;
+
       }
 
       /* if its a TCP or UDP protocol*/
@@ -249,30 +250,28 @@ void sr_handlepacket(struct sr_instance* sr,
 
 
 
-
-    char* inf_to;
+/*
+    char* inf_to;*/
 
     /*sanity check*/
-    if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum &&
+/*    if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum &&
       ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
 
       printf("checksum didn't work/n");
-      break;
     }
 
-    printf("passed sanity check!");
+    printf("passed sanity check!");*/
 
-    /* NOT FOR US*/
-    if(inf == 0){
+
+    /*if(inf == 0){
       struct sr_rt* rt = sr->routing_table;
 
       struct in_addr ip_addr;
       ip_addr.s_addr = ip_hdr->ip_dst;
 
-      /* find the interface of the destination*/
       while (rt->next){
         if(inet_ntoa(rt->dest) == inet_ntoa(ip_addr)){
-            /* found destination in routing_table*/
+
             inf_to = (char *)(rt->interface);
             break;
         }
@@ -280,15 +279,13 @@ void sr_handlepacket(struct sr_instance* sr,
         rt = rt->next;
       }
 
-      /* destination is in our table...*/
+
       if(inf_to){
         printf("found the interface to pass to in our table!\n");
 
       }
 
-      /*else send ICMP net unreachable*/
-
-    }
+    }*/
 
 
   }
