@@ -169,7 +169,6 @@ void sr_handlepacket(struct sr_instance* sr,
 
     if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum){
       fprintf(stderr,"erro with checksum/n");
-      continue;
     }
 
     struct sr_if* if_walker = sr->if_list;
