@@ -120,8 +120,9 @@ void sr_handlepacket(struct sr_instance* sr,
         memcpy(&(arp_response->ar_sha), &(inf_from->addr), ETHER_ADDR_LEN * sizeof (char));
         memcpy(&(ehdr_response->ether_shost), &(inf_from->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
 
-        arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
         arp_response->ar_tip = (uint32_t)arp_hdr->ar_sip;
+        arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
+        
 
         ehdr_response->ether_type = (uint16_t)htons(ethertype_arp);
 
