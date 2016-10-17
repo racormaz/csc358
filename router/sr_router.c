@@ -82,7 +82,7 @@ void sr_handlepacket(struct sr_instance* sr,
   /* fill in code here */
   
   /* interface check to see if we have it */
-  struct sr_if* inf_from = sr_get_interface(sr, interface);
+  struct sr_if* inf = sr_get_interface(sr, interface);
 
   print_hdr_eth(packet);
 
@@ -93,15 +93,29 @@ void sr_handlepacket(struct sr_instance* sr,
   /* arp frame handling*/
   if (etype == ethertype_arp){
 
-    printf("arp packet here!/n");
+    printf("arp packet here!\n");
     print_hdr_arp(packet + sizeof(struct sr_ethernet_hdr));
 
     struct sr_arp_hdr* arp_hdr = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    if(arp_hdr->ar_op == htons(arp_op_request) && arp_hdr->ar_tip == inf_from->ip){
+    struct sr_if* if_walker = sr->if_list;
+    int flag = 0;
+
+    while(if_walker)
+    {
+       if(if_walker->ip == arp_hdr->ar_tip)
+        { 
+          flag = 1;
+          break; }
+        if_walker = if_walker->next;
+    }
+
+    /*found ip in our list*/
+
+    if(arp_hdr->ar_op == htons(arp_op_request) && flag == 1){
       printf("its a arp request, need to reply\n");
       
-      if (inf_from){
+      if (inf){
 
         printf("and we have the interface\n");
         struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
@@ -117,10 +131,10 @@ void sr_handlepacket(struct sr_instance* sr,
         memcpy(&(arp_response->ar_tha), &(arp_hdr->ar_sha), ETHER_ADDR_LEN * sizeof (char));
         memcpy(&(ehdr_response->ether_dhost), &(arp_hdr->ar_sha), ETHER_ADDR_LEN * sizeof (uint8_t));
 
-        memcpy(&(arp_response->ar_sha), &(inf_from->addr), ETHER_ADDR_LEN * sizeof (char));
-        memcpy(&(ehdr_response->ether_shost), &(inf_from->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
+        memcpy(&(arp_response->ar_sha), &(if_walker->addr), ETHER_ADDR_LEN * sizeof (char));
+        memcpy(&(ehdr_response->ether_shost), &(if_walker->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
 
-        arp_response->ar_tip = (uint32_t)arp_hdr->ar_sip;
+        arp_response->ar_tip = (uint32_t)if_walker->ip;
         arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
         
 
@@ -161,7 +175,7 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("passed sanity check!");
 
     /* interface_to not in our if_list*/
-    if(inf_from == 0){
+    if(inf == 0){
       struct sr_rt* rt = sr->routing_table;
 
       struct in_addr ip_addr;
