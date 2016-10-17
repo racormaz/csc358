@@ -118,8 +118,11 @@ void sr_handlepacket(struct sr_instance* sr,
       if (inf){
 
         printf("and we have the interface\n");
-        struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
-        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)packet;
+
+        uint8_t *buf = malloc(len);
+
+        struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
+        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)buf;
 
         arp_response->ar_hrd = htons(arp_hrd_ethernet);
         arp_response->ar_pro = htons(ethertype_ip);
@@ -136,17 +139,17 @@ void sr_handlepacket(struct sr_instance* sr,
 
         arp_response->ar_tip = (uint32_t)if_walker->ip;
         arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
-        
 
         ehdr_response->ether_type = (uint16_t)htons(ethertype_arp);
 
         printf("send the ARP reply\n");
 
-        print_hdr_eth(packet);
-        print_hdr_arp(packet + sizeof(struct sr_ethernet_hdr));
+        print_hdr_eth(buf);
+        print_hdr_arp(buf + sizeof(struct sr_ethernet_hdr));
 
-        sr_send_packet(sr,packet,len,interface);
+        sr_send_packet(sr,buf,len,interface);
 
+        free(buf);
       }
 
       else{
@@ -161,8 +164,92 @@ void sr_handlepacket(struct sr_instance* sr,
   else if (etype == ethertype_ip){
 
     printf("its an IP packet!\n");
-
+        
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
+
+    if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum){
+      break;
+    }
+
+    struct sr_if* if_walker = sr->if_list;
+    int flag = 0;
+
+    while(if_walker)
+    {
+       if(if_walker->ip == ip_hdr->ip_dest)
+        { 
+          flag = 1;
+          break; }
+        if_walker = if_walker->next;
+    }
+
+    /* found ip in our interfaces*/
+    if(flag==1){
+      
+      /* ip frame is for us... check protocol */
+      printf("ip frame is for us! lets see what it is\n");
+      
+      uint8_t ip_proto = ip_protocol(packet + sizeof(sr_ethernet_hdr_t));
+
+      /* if its ICMP...*/
+      if (ip_proto == ip_protocol_icmp){
+        printf("its an ICMP packet!\n");
+        struct sr_icmp_hdr* icmp_hdr = (struct sr_icmp_hdr*)(packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
+
+        if(cksum((packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), len - sizeof(struct sr_ethernet_hdr) - sizeof(sr_ip_hdr)) == icmp_hdr->icmp_sum){
+
+          /* if its an echo request*/
+          if(icmp->icmp_type == 0){
+            printf("its an echo request!\n");
+
+            
+            uint8_t *buf = malloc(len);
+
+            struct sr_icmp_hdr* icmp_res = (struct sr_arp_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
+            struct sr_ip_hdr* ip_res = (struct sr_ip_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
+            struct sr_ethernet_hdr* ehdr_res = (struct sr_ethernet_hdr*)buf;
+
+            free(buf);
+
+          }
+
+        }
+
+        /*/check sum didn't pass*/
+        break;
+      }
+
+      /* if its a TCP or UDP protocol*/
+      else if(ip_proto == 0x0006 || ip_proto == 0x0011){
+        printf("its TCP or UDP!\n");
+        
+      }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     char* inf_to;
 
     /*sanity check*/
@@ -170,11 +257,12 @@ void sr_handlepacket(struct sr_instance* sr,
       ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
 
       printf("checksum didn't work/n");
+      break;
     }
 
     printf("passed sanity check!");
 
-    /* interface_to not in our if_list*/
+    /* NOT FOR US*/
     if(inf == 0){
       struct sr_rt* rt = sr->routing_table;
 
@@ -200,34 +288,6 @@ void sr_handlepacket(struct sr_instance* sr,
 
       /*else send ICMP net unreachable*/
 
-    }
-
-    /* ip frame is for us... check protocol */
-    printf("ip frame is for us! lets see what it is\n");
-    uint8_t ip_proto = ip_protocol(packet + sizeof(sr_ethernet_hdr_t));
-
-    /* if its ICMP...*/
-    if (ip_proto == ip_protocol_icmp){
-      printf("its an ICMP packet!\n");
-      struct sr_icmp_hdr* icmp = (struct sr_icmp_hdr*)(packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
-
-      if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) == ip_hdr->ip_sum){
-
-        /* if its an echo request*/
-        if(icmp->icmp_type == 0){
-          printf("its an echo request!\n");
-        }
-
-      }
-
-      /*/check sum didn't pass*/
-
-    }
-
-    /* if its a TCP or UDP protocol*/
-    else if(ip_proto == 0x0006 || ip_proto == 0x0011){
-      printf("its TCP or UDP!\n");
-      
     }
 
 

@@ -19,9 +19,41 @@
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
     /* Fill this in */
 
-   /* struct sr_arpcache requests = sr->cache.requests;*/
+    struct sr_arpcache cache = sr->cache;
+
+    struct sr_arpreq* req_walker = (struct sr_arpreq*)(cache.requests);
+
+    while(req_walker->next){
+        handle_arpreq(sr, req_walker);
+
+        req_walker = req_walker->next;
+    }
 
 
+}
+
+void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
+    time_t curtime = time(NULL);
+
+    if(difftime(curtime,req->sent > 1.0)){
+        if(req->times_sent >=5){
+            /*send icmp to all pkts waiting on this req*/
+
+            struct sr_packet *p_walker = (struct sr_packet*)(req->packets);
+
+            while(p_walker->next){
+                p_walker = p_walker->next;
+            }
+
+            sr_arpreq_destroy(sr, req);
+        }
+
+        else{
+            /*arp req to be sent*/
+            req->sent = curtime;
+            req->times_sent++;
+        }
+    }
 }
 
 /* You should not need to touch the rest of this code. */
