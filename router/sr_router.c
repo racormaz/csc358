@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "sr_if.h"
 #include "sr_rt.h"
@@ -128,7 +129,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
         print_hdr_eth(packet);
         print_hdr_arp(packet + sizeof(struct sr_ethernet_hdr));
-        
+
         sr_send_packet(sr,packet,len,interface);
 
       }
