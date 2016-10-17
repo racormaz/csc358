@@ -101,25 +101,13 @@ void sr_handlepacket(struct sr_instance* sr,
 
     struct sr_arp_hdr* arp_hdr = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    if (sr_arp_req_not_for_us(sr, packet, len, interface) == 1){
-      printf("the arp is not for us\n");
-      /*its not for us*/
-
-    }
-
-    else if(arp_hdr->ar_op == htons(arp_op_request)){
-      printf("its a arp request, need to reply");
+    if(arp_hdr->ar_op == htons(arp_op_request) && arp_hdr->ar_tip == inf_from->ip){
+      printf("its a arp request, need to reply\n");
       
       if (inf_from){
 
-        unsigned char *packet_out = 0;
-
-        if((packet_out = malloc(len)) == 0){
-          fprintf(stderr,"Error: out of memory (sr_read_from_server)\n");
-          return -1;
-          
-        }
-        sr_arp_hdr_t arp_response = (struct sr_arp_hdr*)(packet_out + sizeof(struct sr_ethernet_hdr));
+        printf("and we have the interface\n");
+        sr_arp_hdr_t arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
         
         arp_response->ar_hrd = htons(sr_arp_hrd_fmt);
         arp_response->ar_pro = htons(ethertype_ip);
@@ -132,15 +120,19 @@ void sr_handlepacket(struct sr_instance* sr,
         arp_response->ar_tha = arp_hdr->ar_sha;
         arp_response->ar_tip = arp_hdr->ar_sip;
 
-        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)packet_out;
+        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)packet;
 
         ehdr_response->ether_dhost = arp_hdr->ar_sha;
         ehdr_response->ether_shost = inf_from->addr;
         ehdr_response->ether_type = htons(ethertype_arp);
 
         printf("send the ARP reply\n");
-        sr_send_packet(sr,packet_out,len,interface);
+        sr_send_packet(sr,packet,len,interface);
 
+      }
+
+      else{
+        printf("drop packet");
       }
 
     }
