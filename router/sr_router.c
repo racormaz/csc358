@@ -109,7 +109,7 @@ void sr_handlepacket(struct sr_instance* sr,
         printf("and we have the interface\n");
         struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
         
-        arp_response->ar_hrd = htons(sr_arp_hrd_fmt);
+        arp_response->ar_hrd = htons(arp_hrd_ethernet);
         arp_response->ar_pro = htons(ethertype_ip);
         arp_response->ar_hln = 6;
         arp_response->ar_pln = 4;
@@ -118,13 +118,13 @@ void sr_handlepacket(struct sr_instance* sr,
         arp_response->ar_sha = inf_from->addr; 
         arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
         arp_response->ar_tha = arp_hdr->ar_sha;
-        arp_response->ar_tip = arp_hdr->ar_sip;
+        arp_response->ar_tip = (uint32_t)arp_hdr->ar_sip;
 
         struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)packet;
 
-        ehdr_response->ether_dhost = arp_hdr->ar_sha;
-        ehdr_response->ether_shost = inf_from->addr;
-        ehdr_response->ether_type = htons(ethertype_arp);
+        ehdr_response->ether_dhost = (uint8_t)arp_hdr->ar_sha;
+        ehdr_response->ether_shost = (uint8_t)inf_from->addr;
+        ehdr_response->ether_type = (uint16_t)htons(ethertype_arp);
 
         printf("send the ARP reply\n");
         sr_send_packet(sr,packet,len,interface);
