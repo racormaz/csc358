@@ -83,10 +83,6 @@ void sr_handlepacket(struct sr_instance* sr,
   /* interface check to see if we have it */
   struct sr_if* inf_from = sr_get_interface(sr, interface);
 
-  /* ethernet header */
-  struct sr_ethernet_hdr* ehdr = (struct sr_ethernet_hdr*)packet;
-  /*print the destination and source addresses*/
-
   print_hdr_eth(packet);
 
   /*get type of packet*/
@@ -108,22 +104,24 @@ void sr_handlepacket(struct sr_instance* sr,
 
         printf("and we have the interface\n");
         struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
-        
+        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)packet;
+
         arp_response->ar_hrd = htons(arp_hrd_ethernet);
         arp_response->ar_pro = htons(ethertype_ip);
         arp_response->ar_hln = 6;
         arp_response->ar_pln = 4;
         arp_response->ar_op = htons(arp_op_reply);
 
-        arp_response->ar_sha = (unsigned char[ETHER_ADDR_LEN])*(inf_from->addr); 
+
+        memcpy(&(arp_response->ar_tha), &(arp_hdr->ar_sha), ETHER_ADDR_LEN * sizeof (char));
+        memcpy(&(ehdr_response->ether_dhost), &(arp_hdr->ar_sha), ETHER_ADDR_LEN * sizeof (uint8_t));
+
+        memcpy(&(arp_response->ar_sha), &(inf_from->addr), ETHER_ADDR_LEN * sizeof (char));
+        memcpy(&(ehdr_response->ether_shost), &(inf_from->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
+
         arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
-        arp_response->ar_tha = (unsigned char[ETHER_ADDR_LEN])*(arp_hdr->ar_sha);
         arp_response->ar_tip = (uint32_t)arp_hdr->ar_sip;
 
-        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)packet;
-
-        ehdr_response->ether_dhost = (uint8_t[ETHER_ADDR_LEN])(arp_hdr->ar_sha);
-        ehdr_response->ether_shost = (uint8_t[ETHER_ADDR_LEN])(inf_from->addr);
         ehdr_response->ether_type = (uint16_t)htons(ethertype_arp);
 
         printf("send the ARP reply\n");
