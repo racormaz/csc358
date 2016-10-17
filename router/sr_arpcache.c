@@ -45,7 +45,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 p_walker = p_walker->next;
             }
 
-            sr_arpreq_destroy(sr, req);
+            sr_arpreq_destroy(&(sr->cache), req);
         }
 
         else{
