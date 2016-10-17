@@ -107,7 +107,7 @@ void sr_handlepacket(struct sr_instance* sr,
       if (inf_from){
 
         printf("and we have the interface\n");
-        sr_arp_hdr_t arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
+        struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
         
         arp_response->ar_hrd = htons(sr_arp_hrd_fmt);
         arp_response->ar_pro = htons(ethertype_ip);
@@ -116,7 +116,7 @@ void sr_handlepacket(struct sr_instance* sr,
         arp_response->ar_op = htons(arp_op_reply);
 
         arp_response->ar_sha = inf_from->addr; 
-        arp_response->ar_sip = (uint32_t)sr.sr_addr.sin_addr.s_addr;
+        arp_response->ar_sip = (uint32_t)sr->sr_addr.sin_addr.s_addr;
         arp_response->ar_tha = arp_hdr->ar_sha;
         arp_response->ar_tip = arp_hdr->ar_sip;
 
