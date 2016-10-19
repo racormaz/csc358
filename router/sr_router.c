@@ -166,7 +166,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpcache* cache = (struct sr_arpcache*)&(sr->cache); 
 
         /* we have an IP to MAC mapping so cache it*/
-        struct sr_arpreq* req = sr_arpcache_insert(cache,arp_hdr->ar_sha,ar_hdr->sip);
+        struct sr_arpreq* req = sr_arpcache_insert(cache,arp_hdr->ar_sha,arp_hdr->sip);
 
         /*need to remove req from*/
         if(req){
@@ -174,7 +174,7 @@ void sr_handlepacket(struct sr_instance* sr,
           struct sr_packet* pkts = (struct sr_packet*)(req->packets);
           
           /*MAC ADDRESS YAS*/
-          unsigned char* mac_dst = &(arp_hdr->ar_sha);
+          unsigned char* mac_dst = arp_hdr->ar_sha;
 
           while(pkts->next){
             
@@ -207,7 +207,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
                 printf("-------------------------------------------\n");
                 print_hdr_ip((bufARR + sizeof(struct sr_ethernet_hdr)));
-                sr_send_packet(sr,bufARR,pkts->len,bufARR->iface);
+                sr_send_packet(sr,bufARR,pkts->len,pkts->iface);
               }
 
               else{
@@ -230,7 +230,7 @@ void sr_handlepacket(struct sr_instance* sr,
                 /* BUILDING IP HEADER*/
                 ip_res->ip_tos = 0;			/* type of service */
                 ip_res->ip_len = sizeof(struct sr_ip_hdr);
-                ip_res->ip_tt = 255;			/* time to live */
+                ip_res->ip_ttl = 255;			/* time to live */
                 ip_res->ip_p = (uint8_t)htons(ip_protocol_icmp);			
                 ip_res->ip_src=(uint32_t)if_walker->ip; 
                 ip_res->ip_dst = (uint32_t)ip_hdr->ip_src;
@@ -240,7 +240,7 @@ void sr_handlepacket(struct sr_instance* sr,
                 icmp_res->icmp_type = 11;
                 icmp_res->icmp_code = 0;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-                memcpy(&((icmp_res->data)+ ip_hdr->ip_len), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+                memcpy(&((icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
                 icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
                 sr_send_packet(sr,bufTE,lenI,if_walker->name);
@@ -316,7 +316,7 @@ void sr_handlepacket(struct sr_instance* sr,
               /* BUILDING IP HEADER*/
               ip_res->ip_tos = 0;			/* type of service */
               ip_res->ip_len = sizeof(struct sr_ip_hdr);
-              ip_res->ip_tt = 255;			/* time to live */
+              ip_res->ip_ttl = 255;			/* time to live */
               ip_res->ip_p = htons(ip_protocol_icmp);			
               ip_res->ip_src=(uint32_t)if_walker->ip; 
               ip_res->ip_dst = (uint32_t)ip_hdr->ip_src;
@@ -344,7 +344,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
           struct sr_icmp_t3_hdr* icmp_res = (struct sr_icmp_t3_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_icmp_t3_hdr));
           struct sr_ip_hdr* ip_res = (struct sr_ip_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
-          struct sr_ethernet_hdr* ehdr_res = (struct sr_ethernet_hdr*)buf;
+          struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)buf;
 
           /* BUILDING ETHER HEADER*/
           memcpy(&(ehdr_response->ether_shost), &(if_walker->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
@@ -363,7 +363,7 @@ void sr_handlepacket(struct sr_instance* sr,
           icmp_res->icmp_type = 3;
           icmp_res->icmp_code = 3;
           memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-          memcpy(&((icmp_res->data)+ ip_hdr->ip_len), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+          memcpy(&((icmp_res->data[ip_hdr->ip_len]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
           icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
           sr_send_packet(sr,buf,lenI,if_walker->name);
@@ -420,7 +420,7 @@ void sr_handlepacket(struct sr_instance* sr,
           icmp_res->icmp_type = 3;
           icmp_res->icmp_code = 0;
           memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-          memcpy(&((icmp_res->data)+ ip_hdr->ip_len), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+          memcpy(&((icmp_res->data[ip_hdr->ip_len]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
           icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
           sr_send_packet(sr,buf,lenI,if_walker->name);
@@ -428,16 +428,16 @@ void sr_handlepacket(struct sr_instance* sr,
           free(buf);
         }
         else{
-          struct sr_arpentry * entry_lookup = sr_arpcache_lookup(&(sr->cache), (uint32_t)inet_aton(lpm->gw));
+          struct sr_arpentry * entry_lookup = sr_arpcache_lookup(&(sr->cache), (uint32_t)(lpm->gw.s_addr));
 
           if(entry_lookup){
-            printf("forward packet\n")
+            printf("forward packet\n");
 
           }
           else{
             /*send arp request*/
 
-            struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, packet, ,interface);
+            struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, packet , len ,interface);
 
             if(req){
               struct sr_if* srif = sr->if_list;
