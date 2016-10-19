@@ -35,7 +35,44 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
         }
 
         else{
-            /*arp req to be sent*/
+
+            /*ARP Request*/
+
+            struct sr_if* srif = sr->if_list;
+
+            int len = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr);
+            
+            uint8_t *buf = malloc(len);
+
+            struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
+            struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)buf;
+
+            arp_response->ar_hrd = htons(arp_hrd_ethernet);
+            arp_response->ar_pro = htons(ethertype_ip);
+            arp_response->ar_hln = 6;
+            arp_response->ar_pln = 4;
+            arp_response->ar_op = htons(arp_op_request);
+
+            memset(&(arp_response->ar_tha), 0x00,ETHER_ADDR_LEN * sizeof (char));
+            memset(&(ehdr_response->ether_dhost), 0xFF, ETHER_ADDR_LEN * sizeof (uint8_t));
+
+            memcpy(&(arp_response->ar_sha), &(srif->addr), ETHER_ADDR_LEN * sizeof (char));
+            memcpy(&(ehdr_response->ether_shost), &(srif->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
+
+            arp_response->ar_tip = (uint32_t)req->ip;
+            arp_response->ar_sip = (uint32_t)srif->ip;
+
+            ehdr_response->ether_type = (uint16_t)htons(ethertype_arp);
+
+            printf("send the ARP request\n");
+
+            print_hdr_eth(buf);
+            print_hdr_arp(buf + sizeof(struct sr_ethernet_hdr));
+
+            sr_send_packet(sr,buf,len, &(srif->name));
+
+            free(buf);
+
             req->sent = curtime;
             req->times_sent++;
         }
