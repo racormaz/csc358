@@ -363,7 +363,7 @@ void sr_handlepacket(struct sr_instance* sr,
           icmp_res->icmp_type = 3;
           icmp_res->icmp_code = 3;
           memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-          memcpy(&((icmp_res->data[ip_hdr->ip_len]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+          memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
           icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
           sr_send_packet(sr,buf,lenI,if_walker->name);
