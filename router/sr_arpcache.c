@@ -31,15 +31,17 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
 
                 uint8_t* packet = p_walker->buf;
                 
-                struct sr_if* if_walker = sr_get_interface(sr, &(p_walker->name));
+                struct sr_if* if_walker = sr_get_interface(sr, &(p_walker->iface));
+
+                struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
                 struct sr_ethernet_hdr* ehdr_sender = (struct sr_ethernet_hdr*)packet;
           
                 int lenI = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
                 uint8_t *buf = malloc(lenI);
 
-                struct sr_icmp_t3_hdr* icmp_res = (struct sr_icmp_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
+                struct sr_icmp_t3_hdr* icmp_res = (struct sr_icmp_t3_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
                 struct sr_ip_hdr* ip_res = (struct sr_ip_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
-                struct sr_ethernet_hdr* ehdr_res = (struct sr_ethernet_hdr*)buf;
+                struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)buf;
 
                 /* BUILDING ETHER HEADER*/
                 memcpy(&(ehdr_response->ether_shost), &(if_walker->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
@@ -58,7 +60,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 icmp_res->icmp_type = 3;
                 icmp_res->icmp_code = 1;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-                memcpy(&((icmp_res->data)+ ip_hdr->ip_len), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+                memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
                 icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
                 sr_send_packet(sr,buf,lenI,if_walker->name);
