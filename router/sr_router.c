@@ -79,9 +79,6 @@ void sr_handlepacket(struct sr_instance* sr,
   assert(interface);
 
   printf("*** -> Received packet of length %d \n",len);
-  
-  /* interface check to see if we have it */
-  struct sr_if* inf = sr_get_interface(sr, interface);
 
   print_hdr_eth(packet);
 
@@ -263,7 +260,7 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("its an IP packet!\n");
     printf("-------------------------------------------\n");
 
-    print_hdr_ip(buf);
+    print_hdr_ip(packet + sizeof(struct sr_ethernet_hdr));
         
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
