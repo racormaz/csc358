@@ -31,7 +31,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
 
                 uint8_t* packet = p_walker->buf;
                 
-                struct sr_if* if_walker = sr_get_interface(sr, &(p_walker->iface));
+                struct sr_if* if_walker = sr_get_interface(sr, p_walker->iface);
 
                 struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
                 struct sr_ethernet_hdr* ehdr_sender = (struct sr_ethernet_hdr*)packet;
