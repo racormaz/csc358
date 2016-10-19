@@ -166,7 +166,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct sr_arpcache* cache = (struct sr_arpcache*)&(sr->cache); 
 
         /* we have an IP to MAC mapping so cache it*/
-        struct sr_arpreq* req = sr_arpcache_insert(cache,arp_hdr->ar_sha,arp_hdr->sip);
+        struct sr_arpreq* req = sr_arpcache_insert(cache,arp_hdr->ar_sha,arp_hdr->ar_sip);
 
         /*need to remove req from*/
         if(req){
@@ -240,7 +240,7 @@ void sr_handlepacket(struct sr_instance* sr,
                 icmp_res->icmp_type = 11;
                 icmp_res->icmp_code = 0;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-                memcpy(&((icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+                memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
                 icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
                 sr_send_packet(sr,bufTE,lenI,if_walker->name);
@@ -420,7 +420,7 @@ void sr_handlepacket(struct sr_instance* sr,
           icmp_res->icmp_type = 3;
           icmp_res->icmp_code = 0;
           memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-          memcpy(&((icmp_res->data[ip_hdr->ip_len]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ip_hdr->ip_len * sizeof (uint8_t));
+          memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
           icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
 
           sr_send_packet(sr,buf,lenI,if_walker->name);
