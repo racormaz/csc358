@@ -440,6 +440,8 @@ void sr_handlepacket(struct sr_instance* sr,
           
           free(buf);
         }
+
+        /*must forward the packet*/
         else{
           struct sr_arpentry * entry_lookup = sr_arpcache_lookup(&(sr->cache), (uint32_t)(lpm->gw.s_addr));
 
@@ -447,6 +449,58 @@ void sr_handlepacket(struct sr_instance* sr,
             printf("forward packet\n");
 
 
+            struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)(packet);            
+
+            if(((ip_hdr->ip_ttl)-1) > 0){
+
+              ip_hdr->ip_ttl--;
+              ip_hdr->ip_sum = cksum(packet + sizeof(struct sr_ethernet_hdr), sizeof(struct sr_ip_hdr));
+              memcpy(&(ehdr_response->ether_dhost), (entry_lookup->mac), ETHER_ADDR_LEN * sizeof (uint8_t));
+
+              printf("-------------------------------------------\n");
+              print_hdr_ip((packet + sizeof(struct sr_ethernet_hdr)));
+
+              sr_send_packet(sr,packet,pkts->len,pkts->iface);
+            }
+
+            else{
+              /*send time exceeded message*/
+              struct sr_ethernet_hdr* ehdr_sender = (struct sr_ethernet_hdr*)packet;
+              
+              int lenI = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
+              uint8_t *bufTE = malloc(lenI);
+
+              struct sr_icmp_t3_hdr* icmp_res = (struct sr_icmp_t3_hdr*)(bufTE + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
+              struct sr_ip_hdr* ip_res = (struct sr_ip_hdr*)(bufTE + sizeof(struct sr_ethernet_hdr));
+              struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)bufTE;
+
+              /* do the echo reply here*/
+
+              /* BUILDING ETHER HEADER*/
+              memcpy(&(ehdr_response->ether_shost), &(if_walker->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
+              memcpy(&(ehdr_response->ether_dhost), &(ehdr_sender->ether_shost), ETHER_ADDR_LEN * sizeof (uint8_t));
+              ehdr_response->ether_type = (uint16_t)htons(ethertype_ip);
+              /* BUILDING IP HEADER*/
+              ip_res->ip_tos = 0;			/* type of service */
+              ip_res->ip_len = sizeof(struct sr_ip_hdr);
+              ip_res->ip_ttl = 255;			/* time to live */
+              ip_res->ip_p = (uint8_t)htons(ip_protocol_icmp);			
+              ip_res->ip_src=(uint32_t)if_walker->ip; 
+              ip_res->ip_dst = (uint32_t)ip_hdr->ip_src;
+              ip_res->ip_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
+              
+              /* BUILDING ICMP HEADER*/
+              icmp_res->icmp_type = 11;
+              icmp_res->icmp_code = 0;
+              memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
+              memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
+              icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+
+              sr_send_packet(sr,bufTE,lenI,if_walker->name);
+              
+              free(bufTE);
+              
+            }
 
             free(entry_lookup);
           }
@@ -456,43 +510,7 @@ void sr_handlepacket(struct sr_instance* sr,
             struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, packet , len ,interface);
 
             if(req){
-              struct sr_if* srif = sr->if_list;
-
-              int lenR = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr);
-              
-              uint8_t *buf = malloc(lenR);
-
-              struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
-              struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)buf;
-
-              arp_response->ar_hrd = htons(arp_hrd_ethernet);
-              arp_response->ar_pro = htons(ethertype_ip);
-              arp_response->ar_hln = 6;
-              arp_response->ar_pln = 4;
-              arp_response->ar_op = htons(arp_op_request);
-
-              memset(&(arp_response->ar_tha), 0x00,ETHER_ADDR_LEN * sizeof (char));
-              memset(&(ehdr_response->ether_dhost), 0xFF, ETHER_ADDR_LEN * sizeof (uint8_t));
-
-              memcpy(&(arp_response->ar_sha), &(srif->addr), ETHER_ADDR_LEN * sizeof (char));
-              memcpy(&(ehdr_response->ether_shost), &(srif->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
-
-              arp_response->ar_tip = (uint32_t)ip_hdr->ip_dst;
-              arp_response->ar_sip = (uint32_t)srif->ip;
-              ehdr_response->ether_type = (uint16_t)htons(ethertype_arp);
-
-              printf("send the ARP request\n");
-
-              print_hdr_eth(buf);
-              print_hdr_arp(buf + sizeof(struct sr_ethernet_hdr));
-              
-              sr_send_packet(sr,buf,lenR, &(srif->name));
-              sr_arpreq_destroy(&(sr->cache), req);
-
-              req->times_sent++;
-              req->sent = time(NULL);
-              
-              free(buf);
+              handle_arpreq(req);
             }
           }
         }

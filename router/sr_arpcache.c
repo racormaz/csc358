@@ -126,11 +126,14 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
     struct sr_arpcache cache = sr->cache;
 
     struct sr_arpreq* req_walker = (struct sr_arpreq*)(cache.requests);
+    struct sr_arpreq* req_next;
 
     while(req_walker->next){
+        req_next = req_walker->next;
+
         handle_arpreq(sr, req_walker);
 
-        req_walker = req_walker->next;
+        req_walker = req_next;
     }
 
 
