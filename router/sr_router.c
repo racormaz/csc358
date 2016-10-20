@@ -192,7 +192,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
             ip_hdr->ip_sum = ck;
 
-            else if(ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
+            if(ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
               fprintf(stderr, "not long enough.\n");
             }
 
