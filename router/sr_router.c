@@ -181,7 +181,7 @@ void sr_handlepacket(struct sr_instance* sr,
             struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(bufARR + sizeof(struct sr_ethernet_hdr));
 
             /*sanity check*/    
-            if(cksum(packet + sizeof(struct sr_ethernet_hdr), ntohs(iphdr->ip_len)) != ip_hdr->ip_sum){
+            if(cksum(packet + sizeof(struct sr_ethernet_hdr), ntohs(ip_hdr->ip_len)) != ip_hdr->ip_sum){
 
               fprintf(stderr, "checksum didn't work\n");
             }
@@ -199,7 +199,7 @@ void sr_handlepacket(struct sr_instance* sr,
               if(((ip_hdr->ip_ttl)-1) > 0){
 
                 ip_hdr->ip_ttl--;
-                ip_hdr->ip_sum = cksum(packet + sizeof(struct sr_ethernet_hdr), ntohs(iphdr->ip_len));
+                ip_hdr->ip_sum = cksum(packet + sizeof(struct sr_ethernet_hdr), ntohs(ip_hdr->ip_len));
                 memcpy(&(e_hdr->ether_dhost), mac_dst, ETHER_ADDR_LEN * sizeof (uint8_t));
 
                 printf("-------------------------------------------\n");
@@ -264,11 +264,11 @@ void sr_handlepacket(struct sr_instance* sr,
         
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    uint16_t cs = cksum(packet + sizeof(struct sr_ethernet_hdr), ntohs(iphdr->ip_len));
+    uint16_t cs = cksum(packet + sizeof(struct sr_ethernet_hdr), ntohs(ip_hdr->ip_len));
 
     if( cs != ip_hdr->ip_sum){
       printf("\n");
-      fprintf(stderr, "\tlen: %d\n", ntohs(iphdr->ip_len));
+      fprintf(stderr, "\tlen: %d\n", ntohs(ip_hdr->ip_len));
       fprintf(stderr, "\tchecksum calculated: %d\n", cs);
       fprintf(stderr,"erro with checksum\n");
     }
