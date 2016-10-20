@@ -185,7 +185,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
             ip_hdr->ip_sum = 0;
 
-            if(cksum((packet + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr)) != ip_hdr->ip_sum){
+            if(cksum((bufARR + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr)) != ck){
 
               fprintf(stderr, "checksum didn't work\n");
             }
@@ -275,9 +275,9 @@ void sr_handlepacket(struct sr_instance* sr,
 
     uint16_t cs = cksum((packet + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
 
-    if( cs != ip_hdr->ip_sum){
+    if( cs != ck){
       printf("\n");
-      fprintf(stderr, "\tchecksum calculated: %d\n", ntohs(cs));
+      fprintf(stderr, "\tchecksum calculated: %d\n", cs);
       fprintf(stderr,"erro with checksum\n");
     }
 
