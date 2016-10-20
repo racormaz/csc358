@@ -268,7 +268,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
     if( cs != ip_hdr->ip_sum){
       printf("\n");
-      fprintf(stderr, "\tchecksum calculated: %d\n", ntohs(ip_hdr->ip_len));
+      fprintf(stderr, "\tchecksum calculated: %d\n", ntohs(cs));
       fprintf(stderr,"erro with checksum\n");
     }
 
