@@ -493,7 +493,6 @@ void sr_handlepacket(struct sr_instance* sr,
               req->sent = time(NULL);
               
               free(buf);
-              free(req);
             }
           }
         }

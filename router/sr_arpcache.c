@@ -22,7 +22,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
     time_t curtime = time(NULL);
 
     if(difftime(curtime,req->sent) > 1.0){
-        if(req->times_sent >=5){
+        if(req->times_sent >= 5){
             /*send icmp to all pkts waiting on this req*/
 
             struct sr_packet *p_walker = (struct sr_packet*)(req->packets);
