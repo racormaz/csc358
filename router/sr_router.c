@@ -264,7 +264,7 @@ void sr_handlepacket(struct sr_instance* sr,
         
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    uint16_t cs = cksum(packet + sizeof(struct sr_ethernet_hdr), 5);
+    uint16_t cs = cksum(packet + sizeof(struct sr_ethernet_hdr), sizeof(struct sr_ip_hdr));
 
     if( cs != ip_hdr->ip_sum){
       printf("\n");
