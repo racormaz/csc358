@@ -77,7 +77,7 @@ void sr_handlepacket(struct sr_instance* sr,
   assert(sr);
   assert(packet);
   assert(interface);
-
+  printf("\n");
   printf("*** -> Received packet of length %d \n",len);
 
   print_hdr_eth(packet);
@@ -264,8 +264,13 @@ void sr_handlepacket(struct sr_instance* sr,
         
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    if(cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len) != ip_hdr->ip_sum){
-      fprintf(stderr,"erro with checksum/n");
+    uint16_t cs = cksum(packet + sizeof(struct sr_ethernet_hdr), ip_hdr->ip_len);
+
+    if( cs != ip_hdr->ip_sum){
+      printf("\n");
+      fprintf(stderr, "\tlen: %d\n", ip_hdr->ip_len);
+      fprintf(stderr, "\tchecksum calculated: %d\n", cs);
+      fprintf(stderr,"erro with checksum\n");
     }
 
     else{
