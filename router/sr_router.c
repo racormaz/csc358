@@ -306,9 +306,6 @@ void sr_handlepacket(struct sr_instance* sr,
           printf("its an ICMP packet for us!\n");
           struct sr_icmp_hdr* icmp_hdr = (struct sr_icmp_hdr*)(packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
 
-          uint16_t ck = ip_hdr->ip_sum;
-          ip_hdr->ip_sum = 0;
-
           if(cksum((packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), len - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr)) == icmp_hdr->icmp_sum){
 
             /* if its an echo request*/
@@ -488,14 +485,15 @@ void sr_handlepacket(struct sr_instance* sr,
 
               print_hdr_eth(buf);
               print_hdr_arp(buf + sizeof(struct sr_ethernet_hdr));
-
+              
               sr_send_packet(sr,buf,lenR, &(srif->name));
+              sr_arpreq_destroy(&(sr->cache), req);
 
               req->times_sent++;
               req->sent = time(NULL);
               
               free(buf);
-              free(packet);
+              free(req);
             }
           }
         }
