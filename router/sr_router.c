@@ -180,11 +180,17 @@ void sr_handlepacket(struct sr_instance* sr,
             struct sr_ethernet_hdr* e_hdr = (struct sr_ethernet_hdr*)bufARR;
             struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(bufARR + sizeof(struct sr_ethernet_hdr));
 
-            /*sanity check*/    
+            /*sanity check*/
+            uint16_t ck = ip_hdr->ip_sum;
+
+            ip_hdr->ip_sum = 0;
+
             if(cksum((packet + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr)) != ip_hdr->ip_sum){
 
               fprintf(stderr, "checksum didn't work\n");
             }
+
+            ip_hdr->ip_sum = ck;
 
             else if(ip_hdr->ip_len < sizeof(struct sr_ip_hdr)){
               fprintf(stderr, "not long enough.\n");
@@ -231,7 +237,7 @@ void sr_handlepacket(struct sr_instance* sr,
                 ip_res->ip_p = (uint8_t)htons(ip_protocol_icmp);			
                 ip_res->ip_src=(uint32_t)if_walker->ip; 
                 ip_res->ip_dst = (uint32_t)ip_hdr->ip_src;
-                ip_res->ip_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr)), lenI - sizeof(struct sr_ethernet_hdr));
+                ip_res->ip_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
                 
                 /* BUILDING ICMP HEADER*/
                 icmp_res->icmp_type = 11;
@@ -263,16 +269,22 @@ void sr_handlepacket(struct sr_instance* sr,
     print_hdr_ip(packet + sizeof(struct sr_ethernet_hdr));
         
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
+    
+    uint16_t ck = ip_hdr->ip_sum;
+    ip_hdr->ip_sum = 0;
 
     uint16_t cs = cksum((packet + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
 
-    if( ntohs(cs) != ntohs(ip_hdr->ip_sum)){
+    if( cs != ip_hdr->ip_sum){
       printf("\n");
       fprintf(stderr, "\tchecksum calculated: %d\n", ntohs(cs));
       fprintf(stderr,"erro with checksum\n");
     }
 
     else{
+
+      ip_hdr->ip_sum = ck;
+
       struct sr_if* if_walker = sr->if_list;
       int flag = 0;
 
@@ -293,6 +305,9 @@ void sr_handlepacket(struct sr_instance* sr,
 
           printf("its an ICMP packet for us!\n");
           struct sr_icmp_hdr* icmp_hdr = (struct sr_icmp_hdr*)(packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr));
+
+          uint16_t ck = ip_hdr->ip_sum;
+          ip_hdr->ip_sum = 0;
 
           if(cksum((packet +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), len - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr)) == icmp_hdr->icmp_sum){
 
@@ -433,6 +448,8 @@ void sr_handlepacket(struct sr_instance* sr,
 
           if(entry_lookup){
             printf("forward packet\n");
+
+
 
             free(entry_lookup);
           }
