@@ -181,7 +181,7 @@ void sr_handlepacket(struct sr_instance* sr,
             struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(bufARR + sizeof(struct sr_ethernet_hdr));
 
             /*sanity check*/    
-            if(cksum(packet + sizeof(struct sr_ethernet_hdr), sizeof(struct sr_ip_hdr)) != ip_hdr->ip_sum){
+            if(cksum((packet + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr)) != ip_hdr->ip_sum){
 
               fprintf(stderr, "checksum didn't work\n");
             }
@@ -264,9 +264,9 @@ void sr_handlepacket(struct sr_instance* sr,
         
     struct sr_ip_hdr* ip_hdr = (struct sr_ip_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
 
-    uint16_t cs = cksum(packet + sizeof(struct sr_ethernet_hdr), sizeof(struct sr_ip_hdr));
+    uint16_t cs = cksum((packet + sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
 
-    if( cs != ip_hdr->ip_sum){
+    if( ntohs(cs) != ntohs(ip_hdr->ip_sum)){
       printf("\n");
       fprintf(stderr, "\tchecksum calculated: %d\n", ntohs(cs));
       fprintf(stderr,"erro with checksum\n");
@@ -434,6 +434,7 @@ void sr_handlepacket(struct sr_instance* sr,
           if(entry_lookup){
             printf("forward packet\n");
 
+            free(entry_lookup);
           }
           else{
             /*send arp request*/

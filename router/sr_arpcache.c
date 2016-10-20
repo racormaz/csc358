@@ -21,7 +21,7 @@
 void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
     time_t curtime = time(NULL);
 
-    if(difftime(curtime,req->sent > 1.0)){
+    if(difftime(curtime,req->sent) > 1.0){
         if(req->times_sent >=5){
             /*send icmp to all pkts waiting on this req*/
 
@@ -37,6 +37,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 struct sr_ethernet_hdr* ehdr_sender = (struct sr_ethernet_hdr*)packet;
           
                 int lenI = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr) + sizeof(struct sr_icmp_t3_hdr);
+
                 uint8_t *buf = malloc(lenI);
 
                 struct sr_icmp_t3_hdr* icmp_res = (struct sr_icmp_t3_hdr*)(buf + sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_ip_hdr));
@@ -50,18 +51,18 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 /* BUILDING IP HEADER*/
                 ip_res->ip_tos = 0;
                 ip_res->ip_len = sizeof(struct sr_ip_hdr);
-                ip_res->ip_ttl = 255;
+                ip_res->ip_ttl = 65;
                 ip_res->ip_p = htons(ip_protocol_icmp);			
                 ip_res->ip_src=(uint32_t)if_walker->ip; 
                 ip_res->ip_dst = (uint32_t)ip_hdr->ip_src;
-                ip_res->ip_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr)), lenI - sizeof(struct sr_ethernet_hdr));
+                ip_res->ip_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
                 
                 /* BUILDING ICMP HEADER*/
                 icmp_res->icmp_type = 3;
                 icmp_res->icmp_code = 1;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
                 memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
-                icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+                icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)),  sizeof(struct sr_icmp_hdr));
 
                 sr_send_packet(sr,buf,lenI,if_walker->name);
                 
