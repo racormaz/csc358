@@ -61,8 +61,8 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 icmp_res->icmp_type = 3;
                 icmp_res->icmp_code = 1;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-                memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
-                icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)),  sizeof(struct sr_icmp_hdr));
+                memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), (8 * sizeof(uint8_t)));
+                icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)),  sizeof(struct sr_icmp_t3_hdr));
 
                 sr_send_packet(sr,buf,lenI,if_walker->name);
                 

@@ -243,8 +243,8 @@ void sr_handlepacket(struct sr_instance* sr,
                 icmp_res->icmp_type = 11;
                 icmp_res->icmp_code = 0;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-                memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
-                icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+                memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), (8 * sizeof(uint8_t)));
+                icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), sizeof(struct sr_icmp_t3_hdr));
 
                 sr_send_packet(sr,bufTE,lenI,if_walker->name);
                 
@@ -337,7 +337,7 @@ void sr_handlepacket(struct sr_instance* sr,
               
               /* BUILDING ICMP HEADER*/
               icmp_res->icmp_type = 0;
-              icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+              icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)),  sizeof(struct sr_icmp_hdr));
 
               sr_send_packet(sr,buf,lenI,if_walker->name);
               
@@ -376,8 +376,8 @@ void sr_handlepacket(struct sr_instance* sr,
           icmp_res->icmp_type = 3;
           icmp_res->icmp_code = 3;
           memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-          memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
-          icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+          memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), (8 * sizeof(uint8_t)));
+          icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)),  sizeof(struct sr_icmp_t3_hdr));
 
           sr_send_packet(sr,buf,lenI,if_walker->name);
           
@@ -433,8 +433,8 @@ void sr_handlepacket(struct sr_instance* sr,
           icmp_res->icmp_type = 3;
           icmp_res->icmp_code = 0;
           memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-          memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
-          icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+          memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (buf + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), (8 * sizeof(uint8_t)));
+          icmp_res->icmp_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)),  sizeof(struct sr_icmp_t3_hdr));
 
           sr_send_packet(sr,buf,lenI,if_walker->name);
           
@@ -493,8 +493,8 @@ void sr_handlepacket(struct sr_instance* sr,
               icmp_res->icmp_type = 11;
               icmp_res->icmp_code = 0;
               memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
-              memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), ((ip_hdr->ip_len) * sizeof(uint8_t)));
-              icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), lenI - sizeof(struct sr_ethernet_hdr) - sizeof(struct sr_ip_hdr));
+              memcpy(&(icmp_res->data[(ip_hdr->ip_len)]), (bufTE + sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), (8 * sizeof(uint8_t)));
+              icmp_res->icmp_sum = cksum((bufTE +  sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_ip_hdr)), sizeof(struct sr_icmp_t3_hdr));
 
               sr_send_packet(sr,bufTE,lenI,if_walker->name);
               
