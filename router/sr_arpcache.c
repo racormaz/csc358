@@ -23,8 +23,10 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
 
     if(difftime(curtime,req->sent) > 1.0){
         if(req->times_sent >= 5){
-            /*send icmp to all pkts waiting on this req*/
 
+            printf("more than five times\n");
+            /*send icmp to all pkts waiting on this req*/
+            /*
             struct sr_packet *p_walker = (struct sr_packet*)(req->packets);
 
             while(p_walker->next){
@@ -44,11 +46,10 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 struct sr_ip_hdr* ip_res = (struct sr_ip_hdr*)(buf + sizeof(struct sr_ethernet_hdr));
                 struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)buf;
 
-                /* BUILDING ETHER HEADER*/
                 memcpy(&(ehdr_response->ether_shost), &(if_walker->addr), ETHER_ADDR_LEN * sizeof (uint8_t));
                 memcpy(&(ehdr_response->ether_dhost), &(ehdr_sender->ether_shost), ETHER_ADDR_LEN * sizeof (uint8_t));
 
-                /* BUILDING IP HEADER*/
+
                 ip_res->ip_tos = 0;
                 ip_res->ip_len = sizeof(struct sr_ip_hdr);
                 ip_res->ip_ttl = 65;
@@ -57,7 +58,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 ip_res->ip_dst = (uint32_t)ip_hdr->ip_src;
                 ip_res->ip_sum = cksum((buf +  sizeof(struct sr_ethernet_hdr)), sizeof(struct sr_ip_hdr));
                 
-                /* BUILDING ICMP HEADER*/
+
                 icmp_res->icmp_type = 3;
                 icmp_res->icmp_code = 1;
                 memcpy(&(icmp_res->data), ip_hdr, ip_hdr->ip_len * sizeof (uint8_t));
@@ -71,7 +72,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 p_walker = p_walker->next;
             }
 
-            sr_arpreq_destroy(&(sr->cache), req);
+            sr_arpreq_destroy(&(sr->cache), req);*/
         }
 
         else{
