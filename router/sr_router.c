@@ -510,7 +510,7 @@ void sr_handlepacket(struct sr_instance* sr,
             struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), ip_hdr->ip_dst, packet , len ,interface);
 
             if(req){
-              handle_arpreq(req);
+              handle_arpreq(sr, req);
             }
           }
         }
