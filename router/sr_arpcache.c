@@ -26,7 +26,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
 
             printf("more than five times\n");
             /*send icmp to all pkts waiting on this req*/
-            /*
+            
             struct sr_packet *p_walker = (struct sr_packet*)(req->packets);
 
             while(p_walker->next){
@@ -72,13 +72,13 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
                 p_walker = p_walker->next;
             }
 
-            sr_arpreq_destroy(&(sr->cache), req);*/
+            sr_arpreq_destroy(&(sr->cache), req);
         }
 
         else{
             printf("arp request must be sent\n");
             /*ARP Request*/
-/*
+
             struct sr_if* srif = sr->if_list;
 
             int len = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr);
@@ -115,7 +115,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
             free(buf);
 
             req->sent = curtime;
-            req->times_sent++;*/
+            req->times_sent++;
         }
     }
 }
@@ -123,7 +123,9 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
 
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
     /* Fill this in */
-/*
+
+    pthread_mutex_lock(&(sr->cache->lock));
+
     struct sr_arpcache cache = sr->cache;
 
     struct sr_arpreq* req_walker = (struct sr_arpreq*)(cache.requests);
@@ -135,8 +137,9 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
         handle_arpreq(sr, req_walker);
 
         req_walker = req_next;
-    }*/
+    }
 
+    pthread_mutex_unlock(&(sr->cache->lock));
 
 }
 
@@ -144,7 +147,7 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 /* You should not need to touch the rest of this code. */
 
 /* Checks if an IP->MAC mapping is in the cache. IP is in network byte order.
-   You must free the returned structure if it is not NULL. */
+   You must free the returned structure if it is not NULL. PFFT */
 struct sr_arpentry *sr_arpcache_lookup(struct sr_arpcache *cache, uint32_t ip) {
     pthread_mutex_lock(&(cache->lock));
     
