@@ -460,7 +460,7 @@ void sr_handlepacket(struct sr_instance* sr,
               printf("-------------------------------------------\n");
               print_hdr_ip((packet + sizeof(struct sr_ethernet_hdr)));
 
-              sr_send_packet(sr,packet,pkts->len,pkts->iface);
+              sr_send_packet(sr,packet,len,interface);
             }
 
             else{
