@@ -124,7 +124,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
     /* Fill this in */
 
-    pthread_mutex_lock(&(sr->cache->lock));
+    pthread_mutex_lock(&((sr->cache).lock));
 
     struct sr_arpcache cache = sr->cache;
 
@@ -139,7 +139,7 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
         req_walker = req_next;
     }
 
-    pthread_mutex_unlock(&(sr->cache->lock));
+    pthread_mutex_unlock(&((sr->cache).lock));
 
 }
 
