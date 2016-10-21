@@ -76,9 +76,9 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
         }
 
         else{
-
+            printf("arp request must be sent\n");
             /*ARP Request*/
-
+/*
             struct sr_if* srif = sr->if_list;
 
             int len = sizeof(struct sr_ethernet_hdr) + sizeof(struct sr_arp_hdr);
@@ -115,7 +115,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
             free(buf);
 
             req->sent = curtime;
-            req->times_sent++;
+            req->times_sent++;*/
         }
     }
 }
