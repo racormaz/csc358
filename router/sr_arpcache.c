@@ -110,7 +110,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req){
             print_hdr_eth(buf);
             print_hdr_arp(buf + sizeof(struct sr_ethernet_hdr));
 
-            sr_send_packet(sr,buf,len, &(srif->name));
+            sr_send_packet(sr,buf,len, srif->name);
 
             free(buf);
 

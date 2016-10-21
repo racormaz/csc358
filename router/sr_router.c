@@ -114,12 +114,12 @@ void sr_handlepacket(struct sr_instance* sr,
 
         /*cache it maybe?*/
 
-        uint8_t *bufAR = malloc(sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_arp_hdr));
-
-        struct sr_arp_hdr* arp_response = (struct sr_arp_hdr*)(bufAR + sizeof(struct sr_ethernet_hdr));
-        struct sr_ethernet_hdr* ehdr_response = (struct sr_ethernet_hdr*)bufAR;
-
-        arp_response->ar_hrd = htons(arp_hrd_ethernet);
+        struct sr_arpreq* req = sr_arpcache_queuereq(&(sr->cache), arp_hdr->arp_tip, packet , len ,interface);
+        
+        if(req){
+          handle_arpreq(sr, req);
+        }
+/*        arp_response->ar_hrd = htons(arp_hrd_ethernet);
         arp_response->ar_pro = htons(ethertype_ip);
         arp_response->ar_hln = ETHER_ADDR_LEN;
         arp_response->ar_pln = 4;
@@ -144,7 +144,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
         sr_send_packet(sr,bufAR,sizeof(struct sr_ethernet_hdr)+ sizeof(struct sr_arp_hdr),if_walker->name);
 
-        free(bufAR);
+        free(bufAR);*/
       }
 
       else{
